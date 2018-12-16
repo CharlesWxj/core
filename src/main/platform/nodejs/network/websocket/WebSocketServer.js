@@ -80,9 +80,11 @@ class WebSocketServer extends WebSocket.Server {
             return;
         }
 
-        // Remove this client if the socket is closed pre-upgrade.
+        // Remove this client if the socket is closed or encounters an error
+        // pre-upgrade.
         const listener = () => this._removeClient(socket);
         socket.on('close', listener);
+        socket.on('error', listener);
 
         // Set upgrade timeout.
         const timeout = setTimeout(() => {
@@ -103,7 +105,8 @@ class WebSocketServer extends WebSocket.Server {
         const clientConnectionId = `${netAddress}|${socket.remotePort}`;
 
         const client = this._clients.get(clientConnectionId);
-        // timeout and close event might be on the event-queue at the same time
+        // timeout, close and error event might be on the event-queue at
+        // the same time.
         if (!client) return;
         this._clients.delete(clientConnectionId);
 
